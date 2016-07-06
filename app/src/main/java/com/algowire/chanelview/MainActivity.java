@@ -89,29 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         heightAnimator.setDuration(500);
 
-        heightAnimator.start();
         scrollAnimator.start();
-
-        scrollAnimator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        });
+        heightAnimator.start();
     }
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.algowire.chanelview.ScrollViewX xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mailScrollLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:scrollbars="none">
+    android:background="@android:color/black">
 
     <LinearLayout
         android:id="@+id/mailLayout"
@@ -11,4 +11,4 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:paddingBottom="500dp"/>
-</ScrollView>
+</com.algowire.chanelview.ScrollViewX>

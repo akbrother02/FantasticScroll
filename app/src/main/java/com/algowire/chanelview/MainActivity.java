@@ -1,7 +1,7 @@
 package com.algowire.chanelview;
 
+import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Toast;
+import android.widget.Switch;
 
 import java.util.Random;
 
@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int numberOfChild = 6;
     int[] colors = new int[numberOfChild];
     LinearLayout mainContainer;
-    ScrollView mainScrollView;
+    ScrollViewX mainScrollView;
     GestureDetectorCompat detector;
     int currentScrollPosition;
     int finalScrollPosition;
@@ -35,6 +35,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     View precedingView;
     View followingView;
     int currentActive = 0;
+    boolean toAnimate = true;
+    int startY;
+    int positionY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,20 +51,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             colors[i] = 100000 + random.nextInt(900000);
         }
 
-        int[] images = {R.drawable.one, R.drawable.two, R.drawable.three, R.drawable.four, R.drawable.five, R.drawable.six};
+        int[] images = {R.drawable.one, R.drawable.wallp1, R.drawable.wallp6, R.drawable.four, R.drawable.five, R.drawable.six};
 
         Display display = getWindowManager().getDefaultDisplay();
         currentHeight = display.getHeight();
 
-        firstChildHeight = (currentHeight * 50) / 100;
-        defaultChildHeight = currentHeight / numberOfChild;
+        firstChildHeight = (currentHeight * 70) / 100;
+        defaultChildHeight = currentHeight / (numberOfChild + 1);
 
         mainContainer = (LinearLayout) findViewById(R.id.mailLayout);
-        mainScrollView = (ScrollView) findViewById(R.id.mailScrollLayout);
+        mainScrollView = (ScrollViewX) findViewById(R.id.mailScrollLayout);
         mainScrollView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 return true;
+            }
+        });
+        mainScrollView.setOnScrollViewListener(new ScrollViewX.OnScrollViewListener() {
+            @Override
+            public void onScrollChanged(ScrollViewX view, int l, int t, int oldl, int oldt) {
+                System.out.println(view.getScrollY());
             }
         });
 
@@ -198,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
 
         final int SWIPE_MIN_DISTANCE = 50;
-        final int SWIPE_THRESHOLD_VELOCITY = 50;
+        final int SWIPE_THRESHOLD_VELOCITY = 400;
 
         if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE &&
                 Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
@@ -223,11 +232,78 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void upToDownScroll(final View precedingView, final View currentView) {
 
-        if (mainContainer.indexOfChild(currentView) == 0) {
-            //do-nothing
-        } else {
+        if (toAnimate) {
+
+            toAnimate = false;
+
+            if (mainContainer.indexOfChild(currentView) == 0) {
+                //do-nothing
+            } else {
+                int currentScrollPosition = mainScrollView.getScrollY();
+                int toScrollPosition = precedingView.getTop();
+
+                ValueAnimator scrollAnimator = ValueAnimator.ofInt(currentScrollPosition, toScrollPosition);
+                scrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        int amount = (int) animation.getAnimatedValue();
+                        mainScrollView.scrollTo(0, amount);
+                    }
+                });
+                scrollAnimator.setDuration(400);
+
+                ValueAnimator heightAnimator = ValueAnimator.ofInt(currentView.getLayoutParams().height, defaultChildHeight);
+                heightAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        int height = (int) animation.getAnimatedValue();
+                        currentView.getLayoutParams().height = height;
+                        currentView.requestLayout();
+                    }
+                });
+                heightAnimator.setDuration(400);
+
+                scrollAnimator.start();
+                heightAnimator.start();
+
+                View temp = currentView;
+                setCurrentView(precedingView);
+                setPrecedingView(mainContainer.getChildAt(mainContainer.indexOfChild(precedingView) - 1));
+                setFollowingView(temp);
+
+                scrollAnimator.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        toAnimate = false;
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        toAnimate = true;
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
+            }
+        }
+    }
+
+    public void downToUpScroll(View currentView, final View followingView) {
+
+        if (toAnimate) {
+
+            toAnimate = false;
+
             int currentScrollPosition = mainScrollView.getScrollY();
-            int toScrollPosition = precedingView.getTop();
+            int toScrollPosition = followingView.getTop();
 
             ValueAnimator scrollAnimator = ValueAnimator.ofInt(currentScrollPosition, toScrollPosition);
             scrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -239,13 +315,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
             scrollAnimator.setDuration(400);
 
-            ValueAnimator heightAnimator = ValueAnimator.ofInt(currentView.getLayoutParams().height, defaultChildHeight);
+            ValueAnimator heightAnimator = ValueAnimator.ofInt(followingView.getHeight(), firstChildHeight);
             heightAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     int height = (int) animation.getAnimatedValue();
-                    currentView.getLayoutParams().height = height;
-                    currentView.requestLayout();
+                    followingView.getLayoutParams().height = height;
+                    followingView.requestLayout();
                 }
             });
             heightAnimator.setDuration(400);
@@ -253,44 +329,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             scrollAnimator.start();
             heightAnimator.start();
 
+            scrollAnimator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    toAnimate = true;
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            });
+
             View temp = currentView;
-            setCurrentView(precedingView);
-            setPrecedingView(mainContainer.getChildAt(mainContainer.indexOfChild(precedingView) - 1));
-            setFollowingView(temp);
+            setPrecedingView(currentView);
+            setCurrentView(followingView);
+            setFollowingView(mainContainer.getChildAt(mainContainer.indexOfChild(followingView) + 1));
         }
-    }
-
-    public void downToUpScroll(View currentView, final View followingView) {
-        int currentScrollPosition = mainScrollView.getScrollY();
-        int toScrollPosition = followingView.getTop();
-
-        ValueAnimator scrollAnimator = ValueAnimator.ofInt(currentScrollPosition, toScrollPosition);
-        scrollAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                int amount = (int) animation.getAnimatedValue();
-                mainScrollView.scrollTo(0, amount);
-            }
-        });
-        scrollAnimator.setDuration(400);
-
-        ValueAnimator heightAnimator = ValueAnimator.ofInt(followingView.getHeight(), firstChildHeight);
-        heightAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                int height = (int) animation.getAnimatedValue();
-                followingView.getLayoutParams().height = height;
-                followingView.requestLayout();
-            }
-        });
-        heightAnimator.setDuration(400);
-
-        scrollAnimator.start();
-        heightAnimator.start();
-
-        View temp = currentView;
-        setPrecedingView(currentView);
-        setCurrentView(followingView);
-        setFollowingView(mainContainer.getChildAt(mainContainer.indexOfChild(followingView) + 1));
     }
 }

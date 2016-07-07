@@ -51,7 +51,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             colors[i] = 100000 + random.nextInt(900000);
         }
 
-        int[] images = {R.drawable.one, R.drawable.wallp1, R.drawable.wallp6, R.drawable.four, R.drawable.five, R.drawable.six};
+        int[] images = {R.drawable.one_c,
+                R.drawable.wallp1,
+                R.drawable.wallp6,
+                R.drawable.two_c,
+                R.drawable.wallp7,
+                R.drawable.six};
 
         Display display = getWindowManager().getDefaultDisplay();
         currentHeight = display.getHeight();

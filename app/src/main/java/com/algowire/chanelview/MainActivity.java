@@ -10,7 +10,6 @@ import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -84,8 +83,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 childLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, firstChildHeight));
                 //childLayout.setBackgroundColor(Color.parseColor("#" + colors[i]));
                 ImageView imageView = (ImageView) childLayout.findViewById(R.id.image);
-                imageView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
                 imageView.setImageResource(images[i]);
                 childLayout.setOnClickListener(this);
                 childLayout.setTag(i);
@@ -95,8 +92,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 childLayout.setTag(i);
                 childLayout.setOnClickListener(this);
                 ImageView imageView = (ImageView) childLayout.findViewById(R.id.image);
-                imageView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
                 imageView.setImageResource(images[i]);
                 //childLayout.setBackgroundColor(Color.parseColor("#" + colors[i]));
                 childLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, defaultChildHeight));
@@ -104,38 +99,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        setPrecedingView(null);
-        setCurrentView(mainContainer.getChildAt(0));
-        setFollowingView(mainContainer.getChildAt(1));
+        HelperView.setPrecedingView(null);
+        HelperView.setCurrentView(mainContainer.getChildAt(0));
+        HelperView.setFollowingView(mainContainer.getChildAt(1));
         currentActive = 0;
-    }
-
-    public View getCurrentView() {
-        return currentView;
-    }
-
-    public void setCurrentView(View currentView) {
-        this.currentView = currentView;
-        System.out.println(mainContainer.indexOfChild(currentView));
-    }
-
-    public View getPrecedingView() {
-        return precedingView;
-    }
-
-    public void setPrecedingView(View precedingView) {
-        this.precedingView = precedingView;
-        System.out.println(mainContainer.indexOfChild(precedingView));
-    }
-
-    public View getFollowingView() {
-        return followingView;
-    }
-
-    public void setFollowingView(View followingView) {
-        this.followingView = followingView;
-        System.out.println(mainContainer.indexOfChild(followingView));
-        System.out.println("/// Clean ///");
     }
 
     @Override
@@ -215,16 +182,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE &&
                 Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
             //Toast.makeText(this, "Bottom to Top", Toast.LENGTH_SHORT).show();
-            if (getFollowingView() != null) {
-                downToUpScroll(getCurrentView(), getFollowingView());
+            if (HelperView.getFollowingView() != null) {
+                downToUpScroll(HelperView.getCurrentView(), HelperView.getFollowingView());
             }
             //From Bottom to Top
             return true;
         } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE &&
                 Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
             //Toast.makeText(this, "Top to Bottom", Toast.LENGTH_SHORT).show();
-            if (getPrecedingView() != null) {
-                upToDownScroll(getPrecedingView(), getCurrentView());
+            if (HelperView.getPrecedingView() != null) {
+                upToDownScroll(HelperView.getPrecedingView(), HelperView.getCurrentView());
             }
             //From Top to Bottom
             return true;
@@ -269,10 +236,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 scrollAnimator.start();
                 heightAnimator.start();
 
-                View temp = currentView;
-                setCurrentView(precedingView);
-                setPrecedingView(mainContainer.getChildAt(mainContainer.indexOfChild(precedingView) - 1));
-                setFollowingView(temp);
+                HelperView.setCurrentView(precedingView);
+                HelperView.setPrecedingView(mainContainer.getChildAt(mainContainer.indexOfChild(precedingView) - 1));
+                HelperView.setFollowingView(currentView);
 
                 scrollAnimator.addListener(new Animator.AnimatorListener() {
                     @Override
@@ -354,10 +320,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
 
-            View temp = currentView;
-            setPrecedingView(currentView);
-            setCurrentView(followingView);
-            setFollowingView(mainContainer.getChildAt(mainContainer.indexOfChild(followingView) + 1));
+            HelperView.setPrecedingView(currentView);
+            HelperView.setCurrentView(followingView);
+            HelperView.setFollowingView(mainContainer.getChildAt(mainContainer.indexOfChild(followingView) + 1));
         }
     }
 }
